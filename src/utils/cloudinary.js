@@ -1,12 +1,16 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import { v2 as cloudinary} from "cloudinary";
 import fs from "fs"
 
 cloudinary.config({ 
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
-        api_key: process.env.CLOUDINARY_CLOUD_KEY, 
-        api_secret: process.env.CLOUDINARY_CLOUD_SECRET 
+        api_key: process.env.CLOUDINARY_API_KEY, 
+        api_secret: process.env.CLOUDINARY_API_SECRET 
 
     })
+    
 
  const ulpoadOnCloudinary = async (localFilePath) => {
 
@@ -17,12 +21,14 @@ cloudinary.config({
             {
                 resource_type: "auto"
             })
-         console.log("File is uploaded on cloudinary!", response.url);
+       //  console.log("File is uploaded on cloudinary!", response.url);
+         fs.unlinkSync(localFilePath)
          return response;
     } catch (error) {
-        fs.unlinkSync(localFilePath) //remove the file from local server as uploading on cloudinary got failed
-        return null;
-    }
+    console.error("Cloudinary upload error:", error);
+    fs.unlinkSync(localFilePath);
+    return null;
+}
  }
 
  export {ulpoadOnCloudinary}
