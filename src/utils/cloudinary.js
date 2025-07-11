@@ -25,10 +25,39 @@ cloudinary.config({
          fs.unlinkSync(localFilePath)
          return response;
     } catch (error) {
-    console.error("Cloudinary upload error:", error);
-    fs.unlinkSync(localFilePath);
+    
+        console.error("Cloudinary upload error:", error);
+        fs.unlinkSync(localFilePath);
     return null;
 }
- }
+}
 
- export {ulpoadOnCloudinary}
+function getPublicIdFromUrl(url) {
+  
+  url = url.split('?')[0];
+  
+  const parts = url.split('/upload/');
+  if (parts.length < 2) return null;
+  // Remove file extension
+  const publicIdWithExt = parts[1];
+  const lastDot = publicIdWithExt.lastIndexOf('.');
+  return lastDot === -1 ? publicIdWithExt : publicIdWithExt.substring(0, lastDot);
+}
+
+
+const deleteImageByUrl = async (imageUrl) => {
+  const publicId = getPublicIdFromUrl(imageUrl);
+  if (!publicId) {
+    console.error("Invalid Cloudinary URL");
+    return;
+  }
+  try {
+    const result = await cloudinary.uploader.destroy(publicId);
+    return result;
+  } catch (error) {
+    console.error("Error deleting image:", error);
+    throw error;
+  }
+};
+
+ export {ulpoadOnCloudinary, deleteImageByUrl}

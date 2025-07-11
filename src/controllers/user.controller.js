@@ -1,6 +1,6 @@
 import { asynchandler } from "../utils/asyncHandler.js"
 import { ApiError } from "../utils/ApiError.js"
-import { ulpoadOnCloudinary } from "../utils/cloudinary.js"
+import { deleteImageByUrl, ulpoadOnCloudinary } from "../utils/cloudinary.js"
 import { User } from "../models/user.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
@@ -200,7 +200,7 @@ const changeCurrentPassword = asynchandler(async(req, res) =>
 {
     const {oldPassword, newPasword} = req.body
     
-    const user = User.findById(req.user?._id)
+    const user = await User.findById(req.user?._id)
     const isPasswordCorrect = user.isPasswordCorrect(oldPassword)
 
     if(!isPasswordCorrect)
@@ -265,6 +265,13 @@ const updateUserAvatar = asynchandler(async(req, res) =>
         throw new ApiError(400, "Error uploading avatar!")
     }
 
+    const deleteImageResponse = deleteImageByUrl(req.user?.coverImage)
+
+    if(!deleteImageResponse)
+    {
+        throw new ApiError(401, "Error deleting old Image!")
+    }
+
     const user = await findByIdAndUpdate(req.user?._id,
         {
             $set: {
@@ -294,6 +301,13 @@ const updateUserCoverImage = asynchandler(async(req, res) =>
         throw new ApiError(400, "Error uploading avatar!")
     }
 
+    const deleteImageResponse = deleteImageByUrl(req.user?.avatar)
+
+    if(!deleteImageResponse)
+    {
+        throw new ApiError(401, "Error deleting old Image!")
+    }
+
     const user = await findByIdAndUpdate(req.user?._id,
         {
             $set: {
@@ -308,8 +322,12 @@ const updateUserCoverImage = asynchandler(async(req, res) =>
 })
 
 export { registerUser,
-    loginUser, logoutUser,
-    refreshAccessToken, changeCurrentPassword,
-    getCurrentUser, updateAccountDetails,
-    updateUserAvatar,updateUserCoverImage
+    loginUser,
+    logoutUser,
+    refreshAccessToken,
+    changeCurrentPassword,
+    getCurrentUser,
+    updateAccountDetails,
+    updateUserAvatar,
+    updateUserCoverImage
  }
